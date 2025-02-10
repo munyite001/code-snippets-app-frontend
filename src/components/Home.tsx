@@ -1,4 +1,10 @@
+import { useNavigate } from "react-router-dom";
+
+
 export default function Home() {
+
+    const navigate = useNavigate();
+
     return (
         <div className="w-screen min-h-screen bg-white overflow-x-hidden">
             <div className="w-full p-4 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -16,10 +22,10 @@ export default function Home() {
                     </p>
                 </div>
                 <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 md:mr-6 w-full md:w-auto mt-8 md:mt-0">
-                    <button className="px-4 py-2 w-full mb-4 md:mb-0 md:w-auto bg-purple-700 text-white rounded hover:bg-white hover:text-purple-700 hover:border-purple-700 border-1 border-purple-700">
+                    <button className="px-4 py-2 w-full mb-4 md:mb-0 md:w-auto bg-purple-700 text-white rounded hover:bg-white hover:text-purple-700 hover:border-purple-700 border-1 border-purple-700" onClick={() => navigate("/register")}>
                         Sign Up
                     </button>
-                    <button className="px-4 py-2 w-full md:w-auto border-1 border-purple-500 text-purple-500 rounded hover:bg-purple-700 hover:text-white">
+                    <button className="px-4 py-2 w-full md:w-auto border-1 border-purple-500 text-purple-500 rounded hover:bg-purple-700 hover:text-white" onClick={() => navigate("/login")}>
                         Log In
                     </button>
                 </div>
