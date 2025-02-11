@@ -21,11 +21,11 @@ export default function Register() {
     });
 
     interface AlertType {
-        type: string;
+        type: "error" | "warning" | "info" | "success";
         message: string;
     }
 
-    const defaultAlert: AlertType = { type: "", message: "" };
+    const defaultAlert: AlertType = { type: "info", message: "" };
 
     const [alert, setAlert] = useState<AlertType>(defaultAlert);
 
@@ -89,8 +89,10 @@ export default function Register() {
         try {
             setLoading(true);
             const response = await registerUser(registrationForm);
-            console.log(response);
-            setAlert({ type: "success", message: response?.message });
+            setAlert({ type: "success", message: response?.data?.message });
+            setTimeout(() => {
+                navigate("/login");
+            }, 3000);
         } catch (error) {
             setAlert({ type: "error", message: String(error) });
         } finally {
@@ -103,7 +105,7 @@ export default function Register() {
             {alert.message && (
                 <div className="absolute top-[1rem] right-[1rem] left-[1rem]">
                     <Alert
-                        severity="error"
+                        severity={alert.type}
                         onClose={() => setAlert(defaultAlert)}
                     >
                         {alert.message}

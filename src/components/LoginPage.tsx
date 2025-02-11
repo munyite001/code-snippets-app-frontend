@@ -5,7 +5,7 @@ import Alert from "@mui/material/Alert";
 import { useGlobalContext } from "../context/GlobalProvider.js";
 
 export default function Login() {
-    const { setIsLogged, setToken } = useGlobalContext();
+    const { setIsLogged, setToken, setUser } = useGlobalContext();
 
     const navigate = useNavigate();
 
@@ -21,7 +21,12 @@ export default function Login() {
         password: ""
     });
 
-    const defaultAlert = { type: "", message: "" };
+    interface AlertType {
+        type: "error" | "warning" | "info" | "success";
+        message: string;
+    }
+
+    const defaultAlert: AlertType = { type: "info", message: "" };
 
     const [alert, setAlert] = useState(defaultAlert);
 
@@ -57,8 +62,15 @@ export default function Login() {
             setLoading(true);
             const response = await loginUser(loginForm);
             console.log(response);
-            setAlert({ type: "success", message: response?.message });
+            setAlert({
+                type: "success",
+                message: "Login Success, Redirecting . . ."
+            });
+            const { token, user } = response.data;
             setIsLogged(true);
+            setToken(token);
+            setUser(user);
+            localStorage.setItem("token", token);
             setTimeout(() => {
                 navigate("/dashboard");
             }, 3000);
@@ -74,7 +86,7 @@ export default function Login() {
             {alert.message && (
                 <div className="absolute top-[1rem] right-[1rem] left-[1rem]">
                     <Alert
-                        severity="error"
+                        severity={alert.type}
                         onClose={() => setAlert(defaultAlert)}
                     >
                         {alert.message}

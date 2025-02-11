@@ -25,3 +25,14 @@ export const registerUser = async (registrationData) => {
         throw error.response.data.message;
     }
 };
+
+export const getUserData = async (id) => {
+    try {
+        const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/users/${id}`);
+        return response;
+    } catch (error) {
+        console.error("Error: ", error.response.data.message);
+        throw error.response?.data?.message;
+    }
+
+}
