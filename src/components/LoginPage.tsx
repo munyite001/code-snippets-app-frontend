@@ -70,7 +70,8 @@ export default function Login() {
             setIsLogged(true);
             setToken(token);
             setUser(user);
-            localStorage.setItem("token", token);
+            localStorage.setItem("token", JSON.stringify(token));
+            localStorage.setItem("user", JSON.stringify(user));
             setTimeout(() => {
                 navigate("/dashboard");
             }, 3000);
