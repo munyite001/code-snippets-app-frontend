@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -11,43 +13,29 @@ import {
     faTimes
 } from "@fortawesome/free-solid-svg-icons";
 import { faJsSquare, faPython } from "@fortawesome/free-brands-svg-icons";
-import { useNavigate } from "react-router-dom";
+import TagModal from "./TagModal";
+import { useGlobalContext } from "../context/GlobalProvider";
+import Alert from "@mui/material/Alert";
 
 export default function Dashboard() {
-    const [user, setUser] = useState(() => {
-        const storedUser = localStorage.getItem("user");
-        return storedUser ? JSON.parse(storedUser) : null;
-    });
+    const { logoutUser, tags } = useGlobalContext();
+
+    const storedUser = localStorage.getItem("user");
+    const user = storedUser ? JSON.parse(storedUser) : null;
 
     const [activeTag, setActiveTag] = useState("All");
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [showTagModal, setShowTagModal] = useState(false);
+    const [isEditingTag, setIsEditingTag] = useState(false);
 
-    const navigate = useNavigate();
-
-    const tags = [
-        "All",
-        "Algorithms",
-        "React",
-        "Node",
-        "Python",
-        "Recursion",
-        "Authentication",
-        "CSS",
-        "HTML",
-        "Java",
-        "C++",
-        "C#",
-        "Ruby",
-        "Go",
-        "Rust",
-        "Kotlin",
-        "Swift"
-    ];
+    const [alert, setAlert] = useState<{
+        type: "error" | "success";
+        message: string;
+    } | null>(null);
+    const [showAlert, setShowAlert] = useState(false);
 
     const handleLogout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        navigate("/");
+        logoutUser();
     };
 
     const toggleSidebar = () => {
@@ -56,6 +44,16 @@ export default function Dashboard() {
 
     return (
         <div className="w-full min-h-screen bg-gray-50 flex flex-col md:flex-row">
+            <div className="absolute top-[3rem] left-1/4 right-1/4 z-96">
+                {showAlert && (
+                    <Alert
+                        severity={alert?.type}
+                        onClose={() => setShowAlert(false)}
+                    >
+                        {alert?.message}
+                    </Alert>
+                )}
+            </div>
             {/* Mobile Menu Button */}
             <button
                 className="md:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-md"
@@ -203,7 +201,10 @@ export default function Dashboard() {
                                 </li>
                             ))}
                         </ul>
-                        <button className="bg-purple-600 text-white py-1 px-4 rounded-lg hover:bg-purple-700 transition duration-300 flex items-center gap-2 whitespace-nowrap ml-auto">
+                        <button
+                            className="bg-purple-600 text-white py-1 px-4 rounded-lg hover:bg-purple-700 transition duration-300 flex items-center gap-2 whitespace-nowrap ml-auto"
+                            onClick={() => setShowTagModal(true)}
+                        >
                             <FontAwesomeIcon icon={faPlus} />
                             <span className="hidden sm:inline">Tag</span>
                         </button>
@@ -218,6 +219,13 @@ export default function Dashboard() {
                     onClick={toggleSidebar}
                 />
             )}
+            <TagModal
+                isOpen={showTagModal}
+                onClose={() => setShowTagModal(false)}
+                isEditing={isEditingTag}
+                setAlert={setAlert}
+                setShowAlert={setShowAlert}
+            />
         </div>
     );
 }

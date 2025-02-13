@@ -7,10 +7,10 @@ import GlobalProvider from "./context/GlobalProvider.tsx";
 
 createRoot(document.getElementById("root")!).render(
     <StrictMode>
-        <GlobalProvider>
-            <BrowserRouter>
+        <BrowserRouter>
+            <GlobalProvider>
                 <App />
-            </BrowserRouter>
-        </GlobalProvider>
+            </GlobalProvider>
+        </BrowserRouter>
     </StrictMode>
 );

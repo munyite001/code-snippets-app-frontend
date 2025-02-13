@@ -32,7 +32,7 @@ export default function Home() {
             </div>
 
             <div className="w-full flex flex-col items-center justify-center">
-                <h2 className="text-gray-700 text-xl md:text-2xl mt-16">
+                <h2 className="text-gray-700 text-md font-semibold md:text-2xl mt-16">
                     Organize Your Code Snippets{" "}
                     <span className="text-purple-600 font-bold">
                         Efficiently!
