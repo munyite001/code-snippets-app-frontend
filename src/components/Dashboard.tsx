@@ -14,6 +14,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { faJsSquare, faPython } from "@fortawesome/free-brands-svg-icons";
 import TagModal from "./TagModal";
+import TagListModal from "./TagListModal";
 import { useGlobalContext } from "../context/GlobalProvider";
 import Alert from "@mui/material/Alert";
 
@@ -21,12 +22,18 @@ export default function Dashboard() {
     const { logoutUser, tags } = useGlobalContext();
 
     const storedUser = localStorage.getItem("user");
+
     const user = storedUser ? JSON.parse(storedUser) : null;
 
     const [activeTag, setActiveTag] = useState("All");
+
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
     const [showTagModal, setShowTagModal] = useState(false);
+
     const [isEditingTag, setIsEditingTag] = useState(false);
+
+    const [showTagsListModal, setShowTagsListModal] = useState(false);
 
     const [alert, setAlert] = useState<{
         type: "error" | "success";
@@ -108,7 +115,10 @@ export default function Dashboard() {
                             <FontAwesomeIcon icon={faHeart} />
                             <p className="ml-2">Favorites</p>
                         </li>
-                        <li className="my-2 flex items-center cursor-pointer hover:text-violet-500 w-fit">
+                        <li
+                            className="my-2 flex items-center cursor-pointer hover:text-violet-500 w-fit"
+                            onClick={() => setShowTagsListModal(true)}
+                        >
                             <FontAwesomeIcon icon={faTags} />
                             <p className="ml-2">Tags</p>
                         </li>
@@ -225,6 +235,10 @@ export default function Dashboard() {
                 isEditing={isEditingTag}
                 setAlert={setAlert}
                 setShowAlert={setShowAlert}
+            />
+            <TagListModal
+                isOpen={showTagsListModal}
+                onClose={() => setShowTagsListModal(false)}
             />
         </div>
     );
