@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+// @ts-ignore
 import { loginUser } from "../../API/users.api.js";
 import Alert from "@mui/material/Alert";
 import { useGlobalContext } from "../context/GlobalProvider.js";
@@ -61,7 +64,6 @@ export default function Login() {
         try {
             setLoading(true);
             const response = await loginUser(loginForm);
-            console.log(response);
             setAlert({
                 type: "success",
                 message: "Login Success, Redirecting . . ."
@@ -70,7 +72,7 @@ export default function Login() {
             setIsLogged(true);
             setToken(token);
             setUser(user);
-            localStorage.setItem("token", JSON.stringify(token));
+            localStorage.setItem("token", token);
             localStorage.setItem("user", JSON.stringify(user));
             setTimeout(() => {
                 navigate("/dashboard");

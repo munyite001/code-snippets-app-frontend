@@ -5,6 +5,12 @@ export default function Home() {
 
     const navigate = useNavigate();
 
+    const token = localStorage.getItem("token");
+
+    if (token) {
+        navigate("/dashboard")
+    }
+
     return (
         <div className="w-screen min-h-screen bg-white overflow-x-hidden">
             <div className="w-full p-4 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -32,7 +38,7 @@ export default function Home() {
             </div>
 
             <div className="w-full flex flex-col items-center justify-center">
-                <h2 className="text-gray-700 text-xl md:text-2xl mt-16">
+                <h2 className="text-gray-700 text-md font-semibold md:text-2xl mt-16">
                     Organize Your Code Snippets{" "}
                     <span className="text-purple-600 font-bold">
                         Efficiently!
