@@ -5,6 +5,12 @@ export default function Home() {
 
     const navigate = useNavigate();
 
+    const token = localStorage.getItem("token");
+
+    if (token) {
+        navigate("/dashboard")
+    }
+
     return (
         <div className="w-screen min-h-screen bg-white overflow-x-hidden">
             <div className="w-full p-4 flex flex-col md:flex-row justify-between items-center gap-4">

@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
 import Modal from "@mui/material/Modal";
-import { useState } from "react";
+import React, { useState } from "react";
 // @ts-ignore
 import useAxiosWithAuth from "../../Utils/axiosInterceptor.js";
 // @ts-ignore
-import { createTag } from "../../API/tags.api.js";
+import { createTag, editTag } from "../../API/tags.api.js";
 import { useGlobalContext } from "../context/GlobalProvider.js";
 
 export default function TagModal({
@@ -13,11 +13,15 @@ export default function TagModal({
     onClose,
     isEditing,
     setAlert,
-    setShowAlert
+    setShowAlert,
+    tagName,
+    setTagName
 }: {
     isOpen: boolean;
     onClose: () => void;
     isEditing: boolean;
+    tagName: string;
+    setTagName: React.Dispatch<React.SetStateAction<string>>;
     setAlert: React.Dispatch<
         React.SetStateAction<{
             type: "error" | "success";
@@ -28,15 +32,20 @@ export default function TagModal({
 }) {
     const axiosInstance = useAxiosWithAuth(import.meta.env.VITE_BASE_URL);
 
-    const { tags, setTags } = useGlobalContext();
+    const { tags, setTags, editedTag, setTagsWithId, tagsWithId } =
+        useGlobalContext() as {
+            tags: string[];
+            tagsWithId: object[];
+            setTagsWithId: React.Dispatch<React.SetStateAction<object[]>>;
+            setTags: React.Dispatch<React.SetStateAction<string[]>>;
+            editedTag: { id: number; name: string };
+        };
 
     const [loading, setLoading] = useState(false);
 
-    const [tagName, setTagName] = useState("");
-
     const [error, setError] = useState("");
 
-    const handleSubmitTag = async () => {
+    const handleCreateTag = async () => {
         // Validation
         if (!tagName) {
             setError("Tag Name Cannot Be Empty");
@@ -71,7 +80,60 @@ export default function TagModal({
             setError("");
             setTagName("");
         } catch (err) {
-            console.error("Failed to create tag: ", err);
+            console.error(`Failed to Create Tag: ${err}`);
+            setAlert({
+                type: "error",
+                message: `${
+                    (err as { response?: { data?: { message?: string } } })
+                        .response?.data?.message || "Unknown error"
+                }`
+            });
+            setShowAlert(true);
+        } finally {
+            setLoading(false);
+            onClose();
+        }
+    };
+
+    const handleEditTag = async () => {
+        // Validation
+        if (!tagName) {
+            setError("Tag Name Cannot Be Empty");
+            setTimeout(() => setError(""), 3000);
+            return;
+        }
+
+        if (tags.includes(tagName)) {
+            setError("Tag Name Is Already Taken");
+            setTimeout(() => setError(""), 3000);
+            return;
+        }
+
+        if (tagName.length < 3) {
+            setError("Tag Name Should Be Atleast 3 Letters");
+            setTimeout(() => setError(""), 3000);
+            return;
+        }
+
+        setLoading(true);
+        // API Call
+
+        try {
+            await editTag(axiosInstance, tagName, editedTag.id);
+            setAlert({
+                type: "success",
+                message: `Tag Edited Successfully`
+            });
+            setTags(tags.map((tag) => (tag == editedTag.name ? tagName : tag)));
+            setTagsWithId(
+                tagsWithId.map((tag) =>
+                    tag.name == editedTag.name ? {...tag, name: tagName} : tag
+                )
+            );
+            setError("");
+            setTagName("");
+        } catch (err) {
+            console.error(`Failed to Create Tag: ${err}`);
             setAlert({
                 type: "error",
                 message: `${
@@ -152,7 +214,9 @@ export default function TagModal({
                             className={`px-4 py-2 text-sm font-medium text-white bg-violet-600 rounded-md hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 ${
                                 loading ? "opacity-70 cursor-not-allowed" : ""
                             }`}
-                            onClick={handleSubmitTag}
+                            onClick={
+                                isEditing ? handleEditTag : handleCreateTag
+                            }
                             disabled={loading}
                         >
                             {loading ? (

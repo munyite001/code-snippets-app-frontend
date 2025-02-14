@@ -29,6 +29,10 @@ interface GlobalContextType {
     logoutUser: () => void;
     tags: string[];
     setTags: React.Dispatch<React.SetStateAction<string[]>>;
+    tagsWithId: object[];
+    setTagsWithId: React.Dispatch<React.SetStateAction<object[]>>;
+    editedTag: object;
+    setEditedTag: React.Dispatch<React.SetStateAction<object>>;
 }
 
 // Create context with a default value of undefined
@@ -64,6 +68,10 @@ const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
 
     const [tags, setTags] = useState(["All"]);
 
+    const [tagsWithId, setTagsWithId] = useState<object[]>([])
+
+    const [editedTag, setEditedTag] = useState<object>({})
+
     const logoutUser = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
@@ -81,6 +89,7 @@ const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
                 );
                 // Set tags directly without spreading previous state to avoid duplication
                 setTags(["All", ...tagNames]);
+                setTagsWithId(response.data)
             } catch (err) {
                 console.error(err);
                 throw err;
@@ -101,7 +110,11 @@ const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
                 setToken,
                 logoutUser,
                 tags,
-                setTags
+                setTags,
+                tagsWithId,
+                setTagsWithId,
+                editedTag,
+                setEditedTag
             }}
         >
             {children}

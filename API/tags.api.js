@@ -30,3 +30,20 @@ export const getAllTags = async (axiosInstance) => {
         throw err;
     }
 };
+
+export const editTag = async (axiosInstance, tagName, tagId) => {
+    try {
+        const response = await axiosInstance.put(
+            `/user/tags/${tagId}`,
+
+            { name: tagName.charAt(0).toUpperCase() + tagName.slice(1) },
+            {
+                headers: getAuthHeaders()
+            }
+        );
+        return response.data;
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+};
