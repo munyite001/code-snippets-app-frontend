@@ -47,3 +47,18 @@ export const editTag = async (axiosInstance, tagName, tagId) => {
         throw err;
     }
 };
+
+export const deleteTag = async (axiosInstance, tagId) => {
+    try {
+        const response = await axiosInstance.delete(
+            `/user/tags/${tagId}`,
+            {
+                headers: getAuthHeaders()
+            }
+        );
+        return response.data;
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+};

@@ -5,23 +5,19 @@ import React, { useState } from "react";
 // @ts-ignore
 import useAxiosWithAuth from "../../Utils/axiosInterceptor.js";
 // @ts-ignore
-import { createTag, editTag } from "../../API/tags.api.js";
+import { deleteTag } from "../../API/tags.api.js";
 import { useGlobalContext } from "../context/GlobalProvider.js";
 
-export default function TagModal({
+export default function DeleteTagModal({
     isOpen,
     onClose,
-    isEditing,
     setAlert,
     setShowAlert,
-    tagName,
-    setTagName
+    tagName
 }: {
     isOpen: boolean;
     onClose: () => void;
-    isEditing: boolean;
     tagName: string;
-    setTagName: React.Dispatch<React.SetStateAction<string>>;
     setAlert: React.Dispatch<
         React.SetStateAction<{
             type: "error" | "success";
@@ -43,104 +39,26 @@ export default function TagModal({
 
     const [loading, setLoading] = useState(false);
 
-    const [error, setError] = useState("");
-
-    const handleCreateTag = async () => {
-        // Validation
-        if (!tagName) {
-            setError("Tag Name Cannot Be Empty");
-            setTimeout(() => setError(""), 3000);
-            return;
-        }
-
-        if (tags.includes(tagName)) {
-            setError("Tag Name Is Already Taken");
-            setTimeout(() => setError(""), 3000);
-            return;
-        }
-
-        if (tagName.length < 3) {
-            setError("Tag Name Should Be Atleast 3 Letters");
-            setTimeout(() => setError(""), 3000);
-            return;
-        }
-
+    const handleDeleteTag = async (id: number) => {
         setLoading(true);
-        // API Call
         try {
-            const response = await createTag(axiosInstance, tagName);
-
-            // Update tags correctly (assuming `tags` is an array)
-            setTags((prev) => [...prev, tagName]);
-
+            await deleteTag(axiosInstance, id);
             setAlert({
                 type: "success",
-                message: `${response?.data?.message}`
-            });
-            setError("");
-            setTagName("");
-        } catch (err) {
-            console.error(`Failed to Create Tag: ${err}`);
-            setAlert({
-                type: "error",
-                message: `${
-                    (err as { response?: { data?: { message?: string } } })
-                        .response?.data?.message || "Unknown error"
-                }`
+                message: "Tag Deleted Successfully"
             });
             setShowAlert(true);
-        } finally {
-            setLoading(false);
-            onClose();
-        }
-    };
-
-    const handleEditTag = async () => {
-        // Validation
-        if (!tagName) {
-            setError("Tag Name Cannot Be Empty");
-            setTimeout(() => setError(""), 3000);
-            return;
-        }
-
-        if (tags.includes(tagName)) {
-            setError("Tag Name Is Already Taken");
-            setTimeout(() => setError(""), 3000);
-            return;
-        }
-
-        if (tagName.length < 3) {
-            setError("Tag Name Should Be Atleast 3 Letters");
-            setTimeout(() => setError(""), 3000);
-            return;
-        }
-
-        setLoading(true);
-        // API Call
-
-        try {
-            await editTag(axiosInstance, tagName, editedTag.id);
-            setAlert({
-                type: "success",
-                message: `Tag Edited Successfully`
-            });
-            setShowAlert(true)
-            setTags(tags.map((tag) => (tag == editedTag.name ? tagName : tag)));
             setTagsWithId(
-                tagsWithId.map((tag) =>
-                    (tag as { id: number; name: string }).name == editedTag.name ? {...tag, name: tagName} : tag
+                tagsWithId.filter(
+                    (tag: { id: number; name: string }) =>
+                        tag.id != editedTag.id
                 )
             );
-            setError("");
-            setTagName("");
+            setTags(tags.filter((tag) => tag != editedTag.name));
         } catch (err) {
-            console.error(`Failed to Create Tag: ${err}`);
             setAlert({
                 type: "error",
-                message: `${
-                    (err as { response?: { data?: { message?: string } } })
-                        .response?.data?.message || "Unknown error"
-                }`
+                message: `Error Deleting Tag: ${err}`
             });
             setShowAlert(true);
         } finally {
@@ -163,7 +81,7 @@ export default function TagModal({
                             id="modal-title"
                             className="text-md font-bold text-gray-700"
                         >
-                            {isEditing ? "Edit Tag" : "Add New Tag"}
+                            Delete Tag
                         </h2>
                         <button
                             onClick={onClose}
@@ -187,19 +105,8 @@ export default function TagModal({
                     </div>
 
                     <div id="modal-description" className="text-gray-500">
-                        <label htmlFor="TagName">Tag Name</label>
-                        <input
-                            type="text"
-                            className={`${
-                                error
-                                    ? "border-red-500"
-                                    : "border-gray-500 outline-1 outline-gray-500"
-                            } text-black mt-4 w-full p-2 py-1 border-1 rounded-lg`}
-                            value={tagName}
-                            onChange={(e) => setTagName(e.target.value)}
-                        />
-                        <p className="text-sm text-red-500 p-1 pb-0">
-                            {error && error}
+                        <p className="text-md text-gray-600 p-1 pb-0">
+                            {`Are You Sure You Want To Delete Tag: ${tagName}`}
                         </p>
                     </div>
 
@@ -212,12 +119,10 @@ export default function TagModal({
                             Cancel
                         </button>
                         <button
-                            className={`px-4 py-2 text-sm font-medium text-white bg-violet-600 rounded-md hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 ${
+                            className={`px-4 py-2 text-sm font-medium text-white bg-red-400 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 ${
                                 loading ? "opacity-70 cursor-not-allowed" : ""
                             }`}
-                            onClick={
-                                isEditing ? handleEditTag : handleCreateTag
-                            }
+                            onClick={() => handleDeleteTag(editedTag.id)}
                             disabled={loading}
                         >
                             {loading ? (
@@ -244,10 +149,8 @@ export default function TagModal({
                                     </svg>
                                     Loading...
                                 </>
-                            ) : isEditing ? (
-                                "Save Tag"
                             ) : (
-                                "Add Tag"
+                                "Delete Tag"
                             )}
                         </button>
                     </div>

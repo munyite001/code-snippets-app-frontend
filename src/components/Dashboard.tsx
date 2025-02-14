@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -14,6 +12,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { faJsSquare, faPython } from "@fortawesome/free-brands-svg-icons";
 import TagModal from "./TagModal";
+import DeleteTagModal from "./DeleteTagModal";
 import TagListModal from "./TagListModal";
 import { useGlobalContext } from "../context/GlobalProvider";
 import Alert from "@mui/material/Alert";
@@ -30,6 +29,8 @@ export default function Dashboard() {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
     const [showTagModal, setShowTagModal] = useState(false);
+
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     const [isEditingTag, setIsEditingTag] = useState(false);
 
@@ -279,6 +280,14 @@ export default function Dashboard() {
                 setShowTagModal={setShowTagModal}
                 setTagName={setTagName}
                 setIsEditing={setIsEditingTag}
+                setShowDeleteModal={setShowDeleteModal}
+            />
+            <DeleteTagModal
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                setAlert={setAlert}
+                setShowAlert={setShowAlert}
+                tagName={tagName}
             />
         </div>
     );

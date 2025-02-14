@@ -13,12 +13,14 @@ export default function TagListModal({
     isOpen,
     onClose,
     setShowTagModal,
+    setShowDeleteModal,
     setTagName,
     setIsEditing
 }: {
     isOpen: boolean;
     onClose: () => void;
     setShowTagModal: React.Dispatch<React.SetStateAction<boolean>>;
+    setShowDeleteModal: React.Dispatch<React.SetStateAction<boolean>>;
     setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
     setTagName: React.Dispatch<React.SetStateAction<string>>;
 }) {
@@ -38,7 +40,23 @@ export default function TagListModal({
         setIsEditing(true);
         setShowTagModal(true);
         setTagName(tag.name);
-        setEditedTag(tagsWithId.find((tagObj) => tagObj.name == tag.name) || { id: '', name: '' })
+        setEditedTag(
+            tagsWithId.find((tagObj) => tagObj.name == tag.name) || {
+                id: "",
+                name: ""
+            }
+        );
+    };
+
+    const handleDeleteTag = (tag: Tag) => {
+        setShowDeleteModal(true);
+        setTagName(tag.name);
+        setEditedTag(
+            tagsWithId.find((tagObj) => tagObj.name == tag.name) || {
+                id: "",
+                name: ""
+            }
+        );
     };
 
     return (
@@ -90,7 +108,10 @@ export default function TagListModal({
                                             </span>
                                         </button>
 
-                                        <button className="p-1 text-red-600 hover:text-red-700 rounded-full hover:bg-red-50 transition-colors">
+                                        <button
+                                            className="p-1 text-red-600 hover:text-red-700 rounded-full hover:bg-red-50 transition-colors"
+                                            onClick={() => handleDeleteTag(tag)}
+                                        >
                                             <Trash2 className="h-4 w-4" />
                                             <span className="sr-only">
                                                 Delete
