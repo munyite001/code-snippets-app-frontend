@@ -1,0 +1,46 @@
+export const getAuthHeaders = () => {
+    const token = localStorage.getItem("token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
+export const createSnippet = async (axiosInstance, data) => {
+    try {
+        const response = await axiosInstance.post("/user/snippets", data, {
+            headers: getAuthHeaders()
+        });
+
+        return response.data;
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+};
+
+export const editSnippet = async (axiosInstance, data, id) => {
+    try {
+        const response = await axiosInstance.put(
+            `/user/snippets/${id}`,
+            data,
+            {
+                headers: getAuthHeaders()
+            }
+        );
+
+        return response.data;
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+};
+
+export const getAllUserSnippets = async (axiosInstance) => {
+    try {
+        const response = await axiosInstance.get("/user/snippets/all", {
+            headers: getAuthHeaders()
+        });
+        return response.data;
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+};
