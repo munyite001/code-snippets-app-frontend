@@ -59,7 +59,6 @@ export default function CodeSnippetModal({
         name: string;
     }
 
-    const [code, setCode] = useState("");
     const [language, setLanguage] = useState(LANGUAGES[0]);
 
     const axiosInstance = useAxiosWithAuth(import.meta.env.VITE_BASE_URL);
@@ -200,15 +199,6 @@ export default function CodeSnippetModal({
             }));
         }
     };
-
-    // Update snippetData when code changes
-    React.useEffect(() => {
-        setSnippetData((prev) => ({
-            ...prev,
-            code,
-            language: language.value
-        }));
-    }, [code, language, setSnippetData]);
 
     return (
         <Modal
@@ -480,17 +470,16 @@ export default function CodeSnippetModal({
                                     </Typography>
                                     <select
                                         className="ml-2 p-1 text-sm bg-white border border-gray-300 rounded text-gray-800 focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none"
-                                        value={language.value}
+                                        value={snippetData.language}
                                         onChange={(e) => {
-                                            const selectedLanguage =
-                                                LANGUAGES.find(
-                                                    (lang) =>
-                                                        lang.value ===
-                                                        e.target.value
-                                                );
-                                            setLanguage(
-                                                selectedLanguage || LANGUAGES[0]
+                                            const selectedLanguage = LANGUAGES.find(
+                                                (lang) => lang.value === e.target.value
                                             );
+                                            setSnippetData((prev) => ({
+                                                ...prev,
+                                                language: e.target.value
+                                            }));
+                                            setLanguage(selectedLanguage || LANGUAGES[0]);
                                         }}
                                     >
                                         {LANGUAGES.map((lang) => (
@@ -510,14 +499,17 @@ export default function CodeSnippetModal({
                                     className="overflow-hidden"
                                 >
                                     <CodeMirror
-                                        value={code}
+                                        value={snippetData.code}
                                         height="300px"
                                         extensions={
                                             language && language.extension
                                                 ? [language.extension()]
                                                 : []
                                         }
-                                        onChange={(value) => setCode(value)}
+                                        onChange={(value) => setSnippetData((prev) => ({
+                                            ...prev,
+                                            code: value
+                                        }))}
                                     />
                                 </div>
                             </div>
