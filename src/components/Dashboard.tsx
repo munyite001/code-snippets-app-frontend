@@ -37,10 +37,13 @@ import { vs2015 } from "react-syntax-highlighter/dist/esm/styles/hljs";
 //@ts-ignore
 import { toggleUserFavorites } from "../../API/snippets.api.js";
 
+import DeleteSnippetModal from "./DeleteSnippetModal.js";
+
 export default function Dashboard() {
     const axiosInstance = useAxiosWithAuth(import.meta.env.VITE_BASE_URL);
 
-    const { logoutUser, tags, codeSnippets, setCodeSnippets } = useGlobalContext();
+    const { logoutUser, tags, codeSnippets, setCodeSnippets } =
+        useGlobalContext();
 
     const storedUser = localStorage.getItem("user");
 
@@ -67,6 +70,9 @@ export default function Dashboard() {
     const [expandedSnippet, setExpandedSnippet] = useState<number | null>(null);
 
     const [searchTerm, setSearchTerm] = useState("");
+
+    const [isDeleteSnippetModalOpen, setIsDeleteSnippetModalOpen] =
+        useState(false);
 
     // Track which snippet's menu is open
     const [openMenu, setOpenMenu] = useState<number | null>(null);
@@ -154,7 +160,9 @@ export default function Dashboard() {
             await toggleUserFavorites(axiosInstance, id);
             setCodeSnippets((prev: any) =>
                 prev.map((snippet: any) =>
-                    snippet.id === id ? { ...snippet, isFavorite: !snippet.isFavorite } : snippet
+                    snippet.id === id
+                        ? { ...snippet, isFavorite: !snippet.isFavorite }
+                        : snippet
                 )
             );
             setAlert({
@@ -539,11 +547,19 @@ export default function Dashboard() {
                                                                     }
                                                                     className="mr-2"
                                                                 />
-                                                                {snippet.isFavorite ? "UnFavorite" : "Favorite"}
+                                                                {snippet.isFavorite
+                                                                    ? "UnFavorite"
+                                                                    : "Favorite"}
                                                             </button>
                                                         </li>
                                                         <li>
-                                                            <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center text-red-500">
+                                                            <button
+                                                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center text-red-500"
+                                                                onClick={() => {
+                                                                    setSnippetData(snippet);
+                                                                    setIsDeleteSnippetModalOpen(true);
+                                                                }}
+                                                            >
                                                                 <FontAwesomeIcon
                                                                     icon={
                                                                         faTrash
@@ -714,6 +730,14 @@ export default function Dashboard() {
                 setShowAlert={setShowAlert}
                 snippetData={snippetData}
                 setSnippetData={setSnippetData}
+            />
+
+            <DeleteSnippetModal
+                isOpen={isDeleteSnippetModalOpen}
+                onClose={() => setIsDeleteSnippetModalOpen(false)}
+                setAlert={setAlert}
+                setShowAlert={setShowAlert}
+                snippet={snippetData}
             />
         </div>
     );

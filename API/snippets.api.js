@@ -68,3 +68,18 @@ export const toggleUserFavorites = async (axiosInstance, id) => {
         throw err;
     }
 };
+
+export const deleteSnippet = async (axiosInstance, snippetId) => {
+    try {
+        const response = await axiosInstance.delete(
+            `/api/user/snippets/${snippetId}`,
+            {
+                headers: getAuthHeaders()
+            }
+        );
+        return response.data;
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+};
