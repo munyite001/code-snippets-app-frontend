@@ -18,13 +18,9 @@ export const createSnippet = async (axiosInstance, data) => {
 
 export const editSnippet = async (axiosInstance, data, id) => {
     try {
-        const response = await axiosInstance.put(
-            `/user/snippets/${id}`,
-            data,
-            {
-                headers: getAuthHeaders()
-            }
-        );
+        const response = await axiosInstance.put(`/user/snippets/${id}`, data, {
+            headers: getAuthHeaders()
+        });
 
         return response.data;
     } catch (err) {
@@ -38,6 +34,34 @@ export const getAllUserSnippets = async (axiosInstance) => {
         const response = await axiosInstance.get("/user/snippets/all", {
             headers: getAuthHeaders()
         });
+        return response.data;
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+};
+
+export const getAllUserFavorites = async (axiosInstance) => {
+    try {
+        const response = await axiosInstance.get("/user/favorites", {
+            headers: getAuthHeaders()
+        });
+        return response.data;
+    } catch (err) {
+        console.error(err);
+        throw err;
+    }
+};
+
+export const toggleUserFavorites = async (axiosInstance, id) => {
+    try {
+        const response = await axiosInstance.post(
+            "/user/favorites",
+            { id },
+            {
+                headers: getAuthHeaders()
+            }
+        );
         return response.data;
     } catch (err) {
         console.error(err);

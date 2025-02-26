@@ -26,13 +26,20 @@ import Alert from "@mui/material/Alert";
 import CodeSnippetModal from "./snippetModal";
 import LANGUAGES from "./Languages";
 import { format } from "date-fns";
+//@ts-ignore
+import useAxiosWithAuth from "../../Utils/axiosInterceptor.js";
 
 //@ts-ignore
 import SyntaxHighlighter from "react-syntax-highlighter";
 //@ts-ignore
 import { vs2015 } from "react-syntax-highlighter/dist/esm/styles/hljs";
 
+//@ts-ignore
+import { toggleUserFavorites } from "../../API/snippets.api.js";
+
 export default function Dashboard() {
+    const axiosInstance = useAxiosWithAuth(import.meta.env.VITE_BASE_URL);
+
     const { logoutUser, tags, codeSnippets } = useGlobalContext();
 
     console.log("Code Snippets: ", codeSnippets);
@@ -142,6 +149,22 @@ export default function Dashboard() {
         setTimeout(() => {
             setShowAlert(false);
         }, 3000);
+    };
+
+    const toggleFavorites = async (id: number) => {
+        try {
+            await toggleUserFavorites(axiosInstance, id);
+            setAlert({
+                type: "success",
+                message: "Snippet Updated Successfully"
+            });
+            setShowAlert(true);
+            setTimeout(() => {
+                setShowAlert(false);
+            }, 3000);
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     // Filter snippets based on active tag and search term
@@ -499,14 +522,21 @@ export default function Dashboard() {
                                                             </button>
                                                         </li>
                                                         <li>
-                                                            <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center">
+                                                            <button
+                                                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                                                onClick={() =>
+                                                                    toggleFavorites(
+                                                                        snippet.id
+                                                                    )
+                                                                }
+                                                            >
                                                                 <FontAwesomeIcon
                                                                     icon={
                                                                         faStar
                                                                     }
                                                                     className="mr-2"
                                                                 />
-                                                                Favorite
+                                                                {snippet.isFavorite ? "UnFavorite" : "Favorite"}
                                                             </button>
                                                         </li>
                                                         <li>
