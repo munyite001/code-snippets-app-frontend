@@ -75,7 +75,7 @@ export default function Login() {
             localStorage.setItem("token", token);
             localStorage.setItem("user", JSON.stringify(user));
             setTimeout(() => {
-                navigate("/dashboard");
+                navigate("/");
             }, 3000);
         } catch (error) {
             setAlert({ type: "error", message: String(error) });

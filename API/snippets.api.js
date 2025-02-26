@@ -9,7 +9,7 @@ export const createSnippet = async (axiosInstance, data) => {
             headers: getAuthHeaders()
         });
 
-        return response.data;
+        return response;
     } catch (err) {
         console.error(err);
         throw err;

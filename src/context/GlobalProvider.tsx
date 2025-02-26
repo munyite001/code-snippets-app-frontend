@@ -79,7 +79,7 @@ const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
     const logoutUser = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-        navigate("/");
+        navigate("/login");
     };
 
     useEffect(() => {
@@ -88,15 +88,19 @@ const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
                 const response = await axios.get("/api/user/tags/all", {
                     headers: getAuthHeaders()
                 });
+
                 const tagNames = response.data.map(
                     (tag: { id: string; name: string }) => tag.name
                 );
-                // Set tags directly without spreading previous state to avoid duplication
+
                 setTags(["All", ...tagNames]);
                 setTagsWithId(response.data);
             } catch (err) {
-                console.error(err);
-                throw err;
+                if (axios.isAxiosError(err) && err.response?.status === 401) {
+                    logoutUser();
+                } else {
+                    console.error(err);
+                }
             }
         }
 
@@ -105,14 +109,17 @@ const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
                 const response = await axios.get("/api/user/snippets/all", {
                     headers: getAuthHeaders()
                 });
+
                 const snippets = response.data;
 
                 // Set Snippets Data
                 setCodeSnippets(snippets);
-                
             } catch (err) {
-                console.error(err);
-                throw err;
+                if (axios.isAxiosError(err) && err.response?.status === 401) {
+                    logoutUser();
+                } else {
+                    console.error(err);
+                }
             }
         }
 

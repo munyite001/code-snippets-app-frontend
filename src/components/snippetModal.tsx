@@ -5,7 +5,7 @@ import React, { useState } from "react";
 // @ts-ignore
 import useAxiosWithAuth from "../../Utils/axiosInterceptor.js";
 // @ts-ignore
-import { createSnippet } from "../../API/snippets.api.js";
+import { createSnippet, editSnippet } from "../../API/snippets.api.js";
 import { useGlobalContext } from "../context/GlobalProvider.js";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
@@ -130,9 +130,8 @@ export default function CodeSnippetModal({
         setLoading(true);
         try {
             const response = await createSnippet(axiosInstance, snippetData);
-
             // Update code snippets in the context
-            setCodeSnippets((prev: any) => [...prev, response.data.snippet]);
+            setCodeSnippets((prev: any) => [...prev, response?.data?.snippet]);
 
             setAlert({
                 type: "success",
