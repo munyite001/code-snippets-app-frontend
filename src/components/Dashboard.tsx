@@ -40,9 +40,7 @@ import { toggleUserFavorites } from "../../API/snippets.api.js";
 export default function Dashboard() {
     const axiosInstance = useAxiosWithAuth(import.meta.env.VITE_BASE_URL);
 
-    const { logoutUser, tags, codeSnippets } = useGlobalContext();
-
-    console.log("Code Snippets: ", codeSnippets);
+    const { logoutUser, tags, codeSnippets, setCodeSnippets } = useGlobalContext();
 
     const storedUser = localStorage.getItem("user");
 
@@ -154,6 +152,11 @@ export default function Dashboard() {
     const toggleFavorites = async (id: number) => {
         try {
             await toggleUserFavorites(axiosInstance, id);
+            setCodeSnippets((prev: any) =>
+                prev.map((snippet: any) =>
+                    snippet.id === id ? { ...snippet, isFavorite: !snippet.isFavorite } : snippet
+                )
+            );
             setAlert({
                 type: "success",
                 message: "Snippet Updated Successfully"
