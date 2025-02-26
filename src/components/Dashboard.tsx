@@ -83,6 +83,7 @@ export default function Dashboard() {
     const [tagName, setTagName] = useState("");
 
     const [snippetData, setSnippetData] = useState<{
+        id?: number;
         title: string;
         description: string;
         code: string;
@@ -98,6 +99,7 @@ export default function Dashboard() {
 
     const handleEditSnippet = (snippet: any) => {
         setSnippetData({
+            id: snippet.id,
             title: snippet.title,
             description: snippet.description,
             code: snippet.code,
@@ -287,7 +289,7 @@ export default function Dashboard() {
                         {LANGUAGES.filter((language) =>
                             codeSnippets.some(
                                 (snippet: any) =>
-                                    snippet.language === language.value
+                                    snippet?.language === language?.value
                             )
                         ).map((language) => {
                             // Count how many snippets exist for this language

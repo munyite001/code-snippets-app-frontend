@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import Modal from "@mui/material/Modal";
@@ -37,6 +38,7 @@ export default function CodeSnippetModal({
     >;
     setShowAlert: React.Dispatch<React.SetStateAction<boolean>>;
     snippetData: {
+        id?: number;
         title: string;
         description: string;
         code: string;
@@ -66,6 +68,7 @@ export default function CodeSnippetModal({
     const { tagsWithId, setCodeSnippets } = useGlobalContext() as {
         tagsWithId: Tag[];
         setCodeSnippets: any;
+        codeSnippets: any;
     };
 
     const [loading, setLoading] = useState(false);
@@ -155,6 +158,55 @@ export default function CodeSnippetModal({
                     (err as { response?: { data?: { message?: string } } })
                         .response?.data?.message ||
                     "Failed to create code snippet"
+                }`
+            });
+            setShowAlert(true);
+        } finally {
+            setLoading(false);
+            onClose();
+        }
+    };
+
+    const handleEditSnippet = async () => {
+        if (!validateForm()) return;
+
+        setLoading(true);
+
+        try {
+            const response = await editSnippet(
+                axiosInstance,
+                snippetData,
+                snippetData?.id
+            );
+
+            setCodeSnippets((prev: any) =>
+                prev.map((snippet: any) =>
+                    snippet.id === snippetData.id ? response?.snippet : snippet
+                )
+            );
+
+            setAlert({
+                type: "success",
+                message: "Code snippet Updated successfully"
+            });
+
+            setShowAlert(true);
+
+            setSnippetData({
+                title: "",
+                description: "",
+                code: "",
+                language: "PYTHON",
+                tags: []
+            });
+        } catch (err) {
+            console.error(`Failed to Update code snippet: ${err}`);
+            setAlert({
+                type: "error",
+                message: `${
+                    (err as { response?: { data?: { message?: string } } })
+                        .response?.data?.message ||
+                    "Failed to Update code snippet"
                 }`
             });
             setShowAlert(true);
@@ -471,14 +523,19 @@ export default function CodeSnippetModal({
                                         className="ml-2 p-1 text-sm bg-white border border-gray-300 rounded text-gray-800 focus:ring-2 focus:ring-violet-500 focus:border-violet-500 outline-none"
                                         value={snippetData.language}
                                         onChange={(e) => {
-                                            const selectedLanguage = LANGUAGES.find(
-                                                (lang) => lang.value === e.target.value
-                                            );
+                                            const selectedLanguage =
+                                                LANGUAGES.find(
+                                                    (lang) =>
+                                                        lang.value ===
+                                                        e.target.value
+                                                );
                                             setSnippetData((prev) => ({
                                                 ...prev,
                                                 language: e.target.value
                                             }));
-                                            setLanguage(selectedLanguage || LANGUAGES[0]);
+                                            setLanguage(
+                                                selectedLanguage || LANGUAGES[0]
+                                            );
                                         }}
                                     >
                                         {LANGUAGES.map((lang) => (
@@ -505,10 +562,12 @@ export default function CodeSnippetModal({
                                                 ? [language.extension()]
                                                 : []
                                         }
-                                        onChange={(value) => setSnippetData((prev) => ({
-                                            ...prev,
-                                            code: value
-                                        }))}
+                                        onChange={(value) =>
+                                            setSnippetData((prev) => ({
+                                                ...prev,
+                                                code: value
+                                            }))
+                                        }
                                     />
                                 </div>
                             </div>
@@ -544,7 +603,11 @@ export default function CodeSnippetModal({
                             className={`px-5 py-2 text-sm font-medium text-white bg-violet-600 rounded-lg hover:bg-violet-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-colors duration-200 flex items-center ${
                                 loading ? "opacity-70 cursor-not-allowed" : ""
                             }`}
-                            onClick={handleCreateSnippet}
+                            onClick={
+                                isEditing
+                                    ? handleEditSnippet
+                                    : handleCreateSnippet
+                            }
                             disabled={loading}
                         >
                             {loading ? (
