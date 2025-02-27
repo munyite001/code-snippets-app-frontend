@@ -6,7 +6,7 @@ export const getAuthHeaders = () => {
 export const createTag = async (axiosInstance, tagName) => {
     try {
         const response = await axiosInstance.post(
-            "/user/tags",
+            `${import.meta.env.VITE_BASE_URL}/api/user/tags`,
             { name: tagName.charAt(0).toUpperCase() + tagName.slice(1) },
             {
                 headers: getAuthHeaders()
@@ -21,7 +21,7 @@ export const createTag = async (axiosInstance, tagName) => {
 
 export const getAllTags = async (axiosInstance) => {
     try {
-        const response = await axiosInstance.get("/user/tags/all", {
+        const response = await axiosInstance.get(`${import.meta.env.VITE_BASE_URL}/api/user/tags/all`, {
             headers: getAuthHeaders()
         });
         return response.data;
@@ -34,7 +34,7 @@ export const getAllTags = async (axiosInstance) => {
 export const editTag = async (axiosInstance, tagName, tagId) => {
     try {
         const response = await axiosInstance.put(
-            `/user/tags/${tagId}`,
+            `${import.meta.env.VITE_BASE_URL}/api/user/tags/${tagId}`,
 
             { name: tagName.charAt(0).toUpperCase() + tagName.slice(1) },
             {
@@ -51,7 +51,7 @@ export const editTag = async (axiosInstance, tagName, tagId) => {
 export const deleteTag = async (axiosInstance, tagId) => {
     try {
         const response = await axiosInstance.delete(
-            `/user/tags/${tagId}`,
+            `${import.meta.env.VITE_BASE_URL}/api/user/tags/${tagId}`,
             {
                 headers: getAuthHeaders()
             }
