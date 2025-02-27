@@ -8,7 +8,7 @@ export default defineConfig({
         proxy: {
             "/api": {
                 target: "https://code-snippet-app-backend-55o5.onrender.com",
-                changeOrigin: true,
+                changeOrigin: false,
             }
         }
     }
