@@ -85,9 +85,12 @@ const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
     useEffect(() => {
         async function fetchAllTags() {
             try {
-                const response = await axios.get("/api/user/tags/all", {
-                    headers: getAuthHeaders()
-                });
+                const response = await axios.get(
+                    `${import.meta.env.VITE_BASE_URL}/api/user/tags/all`,
+                    {
+                        headers: getAuthHeaders()
+                    }
+                );
 
                 const tagNames = response.data.map(
                     (tag: { id: string; name: string }) => tag.name
@@ -106,9 +109,12 @@ const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
 
         async function fetchAllSnippets() {
             try {
-                const response = await axios.get("/api/user/snippets/all", {
-                    headers: getAuthHeaders()
-                });
+                const response = await axios.get(
+                    `${import.meta.env.VITE_BASE_URL}/api/user/snippets/all`,
+                    {
+                        headers: getAuthHeaders()
+                    }
+                );
 
                 const snippets = response.data;
 
