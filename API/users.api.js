@@ -2,7 +2,7 @@ import axios from "axios";
 
 export const loginUser = async (loginData) => {
     try {
-        const response = await axios.post(`/api/auth/login`, loginData);
+        const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/auth/login`, loginData);
         return response;
     } catch (error) {
         console.error("Error: ", error.response.data.message);
@@ -13,7 +13,7 @@ export const loginUser = async (loginData) => {
 export const registerUser = async (registrationData) => {
     try {
         const response = await axios.post(
-            `/api/auth/register`,
+            `${import.meta.env.VITE_BASE_URL}/api/auth/register`,
             registrationData
         );
         return response;
@@ -25,7 +25,7 @@ export const registerUser = async (registrationData) => {
 
 export const getUserData = async (id) => {
     try {
-        const response = await axios.post(`/api/users/${id}`);
+        const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/users/${id}`);
         return response;
     } catch (error) {
         console.error("Error: ", error.response.data.message);

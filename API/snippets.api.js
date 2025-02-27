@@ -5,9 +5,13 @@ export const getAuthHeaders = () => {
 
 export const createSnippet = async (axiosInstance, data) => {
     try {
-        const response = await axiosInstance.post("/user/snippets", data, {
-            headers: getAuthHeaders()
-        });
+        const response = await axiosInstance.post(
+            `${import.meta.env.VITE_BASE_URL}/api/user/snippets`,
+            data,
+            {
+                headers: getAuthHeaders()
+            }
+        );
 
         return response;
     } catch (err) {
@@ -18,9 +22,13 @@ export const createSnippet = async (axiosInstance, data) => {
 
 export const editSnippet = async (axiosInstance, data, id) => {
     try {
-        const response = await axiosInstance.put(`/user/snippets/${id}`, data, {
-            headers: getAuthHeaders()
-        });
+        const response = await axiosInstance.put(
+            `${import.meta.env.VITE_BASE_URL}/api/user/snippets/${id}`,
+            data,
+            {
+                headers: getAuthHeaders()
+            }
+        );
 
         return response.data;
     } catch (err) {
@@ -31,9 +39,12 @@ export const editSnippet = async (axiosInstance, data, id) => {
 
 export const getAllUserSnippets = async (axiosInstance) => {
     try {
-        const response = await axiosInstance.get("/user/snippets/all", {
-            headers: getAuthHeaders()
-        });
+        const response = await axiosInstance.get(
+            `${import.meta.env.VITE_BASE_URL}/api/user/snippets/all`,
+            {
+                headers: getAuthHeaders()
+            }
+        );
         return response.data;
     } catch (err) {
         console.error(err);
@@ -43,9 +54,12 @@ export const getAllUserSnippets = async (axiosInstance) => {
 
 export const getAllUserFavorites = async (axiosInstance) => {
     try {
-        const response = await axiosInstance.get("/user/favorites", {
-            headers: getAuthHeaders()
-        });
+        const response = await axiosInstance.get(
+            `${import.meta.env.VITE_BASE_URL}/api/user/favorites`,
+            {
+                headers: getAuthHeaders()
+            }
+        );
         return response.data;
     } catch (err) {
         console.error(err);
@@ -56,7 +70,7 @@ export const getAllUserFavorites = async (axiosInstance) => {
 export const toggleUserFavorites = async (axiosInstance, id) => {
     try {
         const response = await axiosInstance.post(
-            "/user/favorites",
+            `${import.meta.env.VITE_BASE_URL}/api/user/favorites`,
             { id },
             {
                 headers: getAuthHeaders()
@@ -72,7 +86,7 @@ export const toggleUserFavorites = async (axiosInstance, id) => {
 export const deleteSnippet = async (axiosInstance, snippetId) => {
     try {
         const response = await axiosInstance.delete(
-            `/api/user/snippets/${snippetId}`,
+            `${import.meta.env.VITE_BASE_URL}/api/user/snippets/${snippetId}`,
             {
                 headers: getAuthHeaders()
             }
