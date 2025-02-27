@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -8,17 +11,39 @@ import {
     faSearch,
     faPlus,
     faBars,
-    faTimes
+    faTimes,
+    faEdit,
+    faTrash,
+    faClipboard,
+    faStar,
+    faEllipsisV
 } from "@fortawesome/free-solid-svg-icons";
-import { faJsSquare, faPython } from "@fortawesome/free-brands-svg-icons";
 import TagModal from "./TagModal";
 import DeleteTagModal from "./DeleteTagModal";
 import TagListModal from "./TagListModal";
 import { useGlobalContext } from "../context/GlobalProvider";
 import Alert from "@mui/material/Alert";
+import CodeSnippetModal from "./snippetModal";
+import LANGUAGES from "./Languages";
+import { format } from "date-fns";
+//@ts-ignore
+import useAxiosWithAuth from "../../Utils/axiosInterceptor.js";
+
+//@ts-ignore
+import SyntaxHighlighter from "react-syntax-highlighter";
+//@ts-ignore
+import { vs2015 } from "react-syntax-highlighter/dist/esm/styles/hljs";
+
+//@ts-ignore
+import { toggleUserFavorites } from "../../API/snippets.api.js";
+
+import DeleteSnippetModal from "./DeleteSnippetModal.js";
 
 export default function Dashboard() {
-    const { logoutUser, tags } = useGlobalContext();
+    const axiosInstance = useAxiosWithAuth(import.meta.env.VITE_BASE_URL);
+
+    const { logoutUser, tags, codeSnippets, setCodeSnippets } =
+        useGlobalContext();
 
     const storedUser = localStorage.getItem("user");
 
@@ -30,13 +55,27 @@ export default function Dashboard() {
 
     const [showTagModal, setShowTagModal] = useState(false);
 
+    const [showSnippetModal, setShowSnippetModal] = useState(false);
+
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     const [isEditingTag, setIsEditingTag] = useState(false);
 
+    const [isEditingSnippet, setIsEditingSnippet] = useState(false);
+
     const [showTagsListModal, setShowTagsListModal] = useState(false);
 
     const [activeTab, setActiveTab] = useState(0);
+
+    const [expandedSnippet, setExpandedSnippet] = useState<number | null>(null);
+
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const [isDeleteSnippetModalOpen, setIsDeleteSnippetModalOpen] =
+        useState(false);
+
+    // Track which snippet's menu is open
+    const [openMenu, setOpenMenu] = useState<number | null>(null);
 
     const [alert, setAlert] = useState<{
         type: "error" | "success";
@@ -53,6 +92,119 @@ export default function Dashboard() {
     };
 
     const [tagName, setTagName] = useState("");
+
+    const [snippetData, setSnippetData] = useState<{
+        id?: number;
+        title: string;
+        description: string;
+        code: string;
+        language: string;
+        tags: number[];
+    }>({
+        title: "",
+        description: "",
+        code: "",
+        language: "",
+        tags: []
+    });
+
+    const handleEditSnippet = (snippet: any) => {
+        setSnippetData({
+            id: snippet.id,
+            title: snippet.title,
+            description: snippet.description,
+            code: snippet.code,
+            language: snippet.language,
+            tags: snippet.tags.map((tag: any) => tag.tag_id)
+        });
+        setIsEditingSnippet(true);
+        setShowSnippetModal(true);
+    };
+
+    const toggleExpandSnippet = (id: number, e: React.MouseEvent) => {
+        // Prevent expanding if clicking on action buttons
+        if ((e.target as HTMLElement).closest(".snippet-actions")) {
+            return;
+        }
+
+        if (expandedSnippet === id) {
+            setExpandedSnippet(null);
+        } else {
+            setExpandedSnippet(id);
+        }
+    };
+
+    const toggleMenu = (id: number, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (openMenu === id) {
+            setOpenMenu(null);
+        } else {
+            setOpenMenu(id);
+        }
+    };
+
+    const copyToClipboard = (code: string) => {
+        navigator.clipboard.writeText(code);
+        setAlert({
+            type: "success",
+            message: "Code copied to clipboard!"
+        });
+        setShowAlert(true);
+        setTimeout(() => {
+            setShowAlert(false);
+        }, 3000);
+    };
+
+    const toggleFavorites = async (id: number) => {
+        try {
+            await toggleUserFavorites(axiosInstance, id);
+            setCodeSnippets((prev: any) =>
+                prev.map((snippet: any) =>
+                    snippet.id === id
+                        ? { ...snippet, isFavorite: !snippet.isFavorite }
+                        : snippet
+                )
+            );
+            setAlert({
+                type: "success",
+                message: "Snippet Updated Successfully"
+            });
+            setShowAlert(true);
+            setTimeout(() => {
+                setShowAlert(false);
+            }, 3000);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    // Filter snippets based on active tag and search term
+    const filteredSnippets = codeSnippets.filter((snippet: any) => {
+        const matchesTag =
+            activeTag === "All" ||
+            snippet.tags.some((tag: any) => tag.tag.name === activeTag);
+
+        const matchesSearch =
+            searchTerm === "" ||
+            snippet.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            snippet.description
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase());
+
+        const matchesFavorites = activeTab !== 1 || snippet.isFavorite === true;
+
+        return matchesTag && matchesSearch && matchesFavorites;
+    });
+
+    const getLanguageLogo = (languageValue: string) => {
+        const language = LANGUAGES.find((lang) => lang.value === languageValue);
+        return language ? language.logo : "/images/code.png";
+    };
+
+    const getLanguageName = (languageValue: string) => {
+        const language = LANGUAGES.find((lang) => lang.value === languageValue);
+        return language ? language.name : languageValue;
+    };
 
     return (
         <div className="w-full min-h-screen bg-gray-50 flex flex-col md:flex-row">
@@ -168,16 +320,35 @@ export default function Dashboard() {
                         Languages
                     </p>
                     <ul className="text-gray-600/75 px-4 text-sm">
-                        <li className="my-2 flex items-center cursor-pointer hover:text-violet-500">
-                            <FontAwesomeIcon icon={faJsSquare} />
-                            <p className="ml-2">Javascript</p>
-                            <p className="ml-auto font-semibold">5</p>
-                        </li>
-                        <li className="my-2 flex items-center cursor-pointer hover:text-violet-500">
-                            <FontAwesomeIcon icon={faPython} />
-                            <p className="ml-2">Python</p>
-                            <p className="ml-auto font-semibold">1</p>
-                        </li>
+                        {LANGUAGES.filter((language) =>
+                            codeSnippets.some(
+                                (snippet: any) =>
+                                    snippet?.language === language?.value
+                            )
+                        ).map((language) => {
+                            // Count how many snippets exist for this language
+                            const count = codeSnippets.filter(
+                                (snippet: any) =>
+                                    snippet.language === language.value
+                            ).length;
+
+                            return (
+                                <li
+                                    key={language.value}
+                                    className="my-2 flex items-center cursor-pointer hover:text-violet-500"
+                                >
+                                    <img
+                                        src={language.logo}
+                                        alt={language.name}
+                                        className="w-5 h-5"
+                                    />
+                                    <p className="ml-2">{language.name}</p>
+                                    <p className="ml-auto font-semibold">
+                                        {count}
+                                    </p>
+                                </li>
+                            );
+                        })}
                     </ul>
                 </div>
             </aside>
@@ -210,8 +381,25 @@ export default function Dashboard() {
                                     className="ml-4 w-full text-sm text-gray-600 outline-none bg-transparent"
                                     type="text"
                                     placeholder="Search Snippet"
+                                    value={searchTerm}
+                                    onChange={(e) =>
+                                        setSearchTerm(e.target.value)
+                                    }
                                 />
-                                <button className="bg-purple-600 text-white py-2 px-4 rounded-2xl hover:bg-purple-700 transition duration-300 flex items-center gap-2 whitespace-nowrap">
+                                <button
+                                    className="cursor-pointer bg-purple-600 text-white py-2 px-4 rounded-2xl hover:bg-purple-700 transition duration-300 flex items-center gap-2 whitespace-nowrap"
+                                    onClick={() => {
+                                        setIsEditingSnippet(false);
+                                        setSnippetData({
+                                            title: "",
+                                            description: "",
+                                            code: "",
+                                            language: "",
+                                            tags: []
+                                        });
+                                        setShowSnippetModal(true);
+                                    }}
+                                >
                                     <FontAwesomeIcon icon={faPlus} />
                                     <span className="hidden sm:inline">
                                         snippet
@@ -225,8 +413,8 @@ export default function Dashboard() {
                 {/* Tags */}
                 <div className="bg-white m-4 rounded-lg p-4">
                     <div className="flex items-center">
-                        <ul className="flex text-gray-300 items-center gap-8 w-[70%] overflow-x-auto">
-                            {tags.map((tag) => (
+                        <ul className="flex text-gray-600 items-center gap-8 w-[70%] overflow-x-auto">
+                            {tags.map((tag: string) => (
                                 <li
                                     key={tag}
                                     className={`
@@ -245,13 +433,255 @@ export default function Dashboard() {
                             ))}
                         </ul>
                         <button
-                            className="bg-purple-600 text-white py-1 px-4 rounded-lg hover:bg-purple-700 transition duration-300 flex items-center gap-2 whitespace-nowrap ml-auto"
-                            onClick={() => setShowTagModal(true)}
+                            className="cursor-pointer bg-purple-600 text-white py-1 px-4 rounded-lg hover:bg-purple-700 transition duration-300 flex items-center gap-2 whitespace-nowrap ml-auto"
+                            onClick={() => {
+                                setIsEditingTag(false);
+                                setTagName("");
+                                setShowTagModal(true);
+                            }}
                         >
                             <FontAwesomeIcon icon={faPlus} />
                             <span className="hidden sm:inline">Tag</span>
                         </button>
                     </div>
+                </div>
+
+                <div className="m-4 grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 pb-8">
+                    {filteredSnippets.length > 0 ? (
+                        filteredSnippets.map((snippet: any) => (
+                            <div
+                                key={snippet.id}
+                                className="bg-white rounded-lg shadow hover:shadow-md transition-shadow duration-300"
+                                onClick={(e) =>
+                                    toggleExpandSnippet(snippet.id, e)
+                                }
+                            >
+                                <div className="p-4">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center max-w-[70%]">
+                                            <img
+                                                src={getLanguageLogo(
+                                                    snippet.language
+                                                )}
+                                                alt={getLanguageName(
+                                                    snippet.language
+                                                )}
+                                                className="w-6 h-6 mr-2 flex-shrink-0"
+                                            />
+                                            <h3 className="font-semibold text-gray-800 truncate">
+                                                {snippet.title}
+                                            </h3>
+                                        </div>
+                                        <div
+                                            className="relative snippet-actions"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            <button
+                                                className="text-gray-500 hover:text-gray-700 p-1"
+                                                onClick={(e) =>
+                                                    toggleMenu(snippet.id, e)
+                                                }
+                                            >
+                                                <FontAwesomeIcon
+                                                    icon={faEllipsisV}
+                                                />
+                                            </button>
+
+                                            {openMenu === snippet.id && (
+                                                <div className="absolute right-0 mt-1 bg-white rounded-md shadow-lg z-50 w-40">
+                                                    <ul className="py-1">
+                                                        <li>
+                                                            <button
+                                                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                                                onClick={() =>
+                                                                    copyToClipboard(
+                                                                        snippet.code
+                                                                    )
+                                                                }
+                                                            >
+                                                                <FontAwesomeIcon
+                                                                    icon={
+                                                                        faClipboard
+                                                                    }
+                                                                    className="mr-2"
+                                                                />
+                                                                Copy code
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <button
+                                                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                                                onClick={(
+                                                                    e
+                                                                ) => {
+                                                                    e.stopPropagation();
+                                                                    handleEditSnippet(
+                                                                        snippet
+                                                                    );
+                                                                    setOpenMenu(
+                                                                        null
+                                                                    );
+                                                                }}
+                                                            >
+                                                                <FontAwesomeIcon
+                                                                    icon={
+                                                                        faEdit
+                                                                    }
+                                                                    className="mr-2"
+                                                                />
+                                                                Edit
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <button
+                                                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center"
+                                                                onClick={() =>
+                                                                    toggleFavorites(
+                                                                        snippet.id
+                                                                    )
+                                                                }
+                                                            >
+                                                                <FontAwesomeIcon
+                                                                    icon={
+                                                                        faStar
+                                                                    }
+                                                                    className="mr-2"
+                                                                />
+                                                                {snippet.isFavorite
+                                                                    ? "UnFavorite"
+                                                                    : "Favorite"}
+                                                            </button>
+                                                        </li>
+                                                        <li>
+                                                            <button
+                                                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center text-red-500"
+                                                                onClick={() => {
+                                                                    setSnippetData(snippet);
+                                                                    setIsDeleteSnippetModalOpen(true);
+                                                                }}
+                                                            >
+                                                                <FontAwesomeIcon
+                                                                    icon={
+                                                                        faTrash
+                                                                    }
+                                                                    className="mr-2"
+                                                                />
+                                                                Delete
+                                                            </button>
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                                        {snippet.description}
+                                    </p>
+
+                                    <div className="mb-3 flex flex-wrap">
+                                        {snippet.tags &&
+                                            snippet.tags.map((tagObj: any) => (
+                                                <span
+                                                    key={tagObj.tag_id}
+                                                    className="inline-block bg-violet-100 text-violet-800 text-xs px-2 py-1 rounded mr-2 mb-1"
+                                                >
+                                                    {tagObj.tag.name}
+                                                </span>
+                                            ))}
+                                    </div>
+
+                                    <div className="relative bg-gray-800 rounded overflow-hidden">
+                                        {expandedSnippet === snippet.id ? (
+                                            <div className="max-h-96 overflow-auto">
+                                                <SyntaxHighlighter
+                                                    language={snippet.language}
+                                                    style={vs2015}
+                                                    customStyle={{
+                                                        margin: 0,
+                                                        padding: "1rem",
+                                                        fontSize: "0.85rem"
+                                                    }}
+                                                    wrapLines={true}
+                                                    wrapLongLines={true}
+                                                >
+                                                    {snippet.code}
+                                                </SyntaxHighlighter>
+                                            </div>
+                                        ) : (
+                                            <div className="p-3 text-gray-300 text-sm font-mono overflow-hidden h-24">
+                                                <pre
+                                                    className="whitespace-pre-wrap break-words"
+                                                    style={{ margin: 0 }}
+                                                >
+                                                    {snippet.code
+                                                        .split("\n")
+                                                        .slice(0, 3)
+                                                        .join("\n")}
+                                                    {snippet.code.split("\n")
+                                                        .length > 3 && "..."}
+                                                </pre>
+                                                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-gray-800 flex items-end justify-center pb-2">
+                                                    <span className="text-xs text-gray-400">
+                                                        Click to expand
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="mt-3 text-xs text-gray-500 flex justify-between">
+                                        <span>
+                                            Language:{" "}
+                                            {getLanguageName(snippet.language)}
+                                        </span>
+                                        <span>
+                                            Updated:{" "}
+                                            {format(
+                                                new Date(snippet.updatedAt),
+                                                "MMM d, yyyy"
+                                            )}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="col-span-full flex flex-col items-center justify-center bg-white rounded-lg shadow p-8">
+                            <img
+                                src="/images/empty.png"
+                                alt="No snippets"
+                                className="w-32 h-32 mb-4 opacity-50"
+                            />
+                            <h3 className="text-xl font-semibold text-gray-700 mb-2">
+                                No snippets found
+                            </h3>
+                            <p className="text-gray-500 text-center mb-4">
+                                {searchTerm
+                                    ? "No snippets match your search criteria"
+                                    : activeTab === 1
+                                    ? "You don't have any favorite snippets yet"
+                                    : "Start adding code snippets to your collection"}
+                            </p>
+                            <button
+                                className="bg-purple-600 text-white py-2 px-6 rounded-lg hover:bg-purple-700 transition duration-300 flex items-center gap-2"
+                                onClick={() => {
+                                    setIsEditingSnippet(false);
+                                    setSnippetData({
+                                        title: "",
+                                        description: "",
+                                        code: "",
+                                        language: "",
+                                        tags: []
+                                    });
+                                    setShowSnippetModal(true);
+                                }}
+                            >
+                                <FontAwesomeIcon icon={faPlus} />
+                                <span>Add your first snippet</span>
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -262,6 +692,7 @@ export default function Dashboard() {
                     onClick={toggleSidebar}
                 />
             )}
+            {/* Tag Modal(s)*/}
             <TagModal
                 isOpen={showTagModal}
                 onClose={() => setShowTagModal(false)}
@@ -288,6 +719,25 @@ export default function Dashboard() {
                 setAlert={setAlert}
                 setShowAlert={setShowAlert}
                 tagName={tagName}
+            />
+
+            {/* Snippet Modal */}
+            <CodeSnippetModal
+                isOpen={showSnippetModal}
+                onClose={() => setShowSnippetModal(false)}
+                isEditing={isEditingSnippet}
+                setAlert={setAlert}
+                setShowAlert={setShowAlert}
+                snippetData={snippetData}
+                setSnippetData={setSnippetData}
+            />
+
+            <DeleteSnippetModal
+                isOpen={isDeleteSnippetModalOpen}
+                onClose={() => setIsDeleteSnippetModalOpen(false)}
+                setAlert={setAlert}
+                setShowAlert={setShowAlert}
+                snippet={snippetData}
             />
         </div>
     );

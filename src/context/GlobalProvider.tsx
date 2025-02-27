@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
-import {
+import React, {
     createContext,
     useContext,
     useState,
@@ -33,6 +33,8 @@ interface GlobalContextType {
     setTagsWithId: React.Dispatch<React.SetStateAction<object[]>>;
     editedTag: object;
     setEditedTag: React.Dispatch<React.SetStateAction<object>>;
+    codeSnippets: object[];
+    setCodeSnippets: React.Dispatch<React.SetStateAction<object[]>>;
 }
 
 // Create context with a default value of undefined
@@ -68,14 +70,16 @@ const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
 
     const [tags, setTags] = useState(["All"]);
 
-    const [tagsWithId, setTagsWithId] = useState<object[]>([])
+    const [tagsWithId, setTagsWithId] = useState<object[]>([]);
 
-    const [editedTag, setEditedTag] = useState<object>({})
+    const [editedTag, setEditedTag] = useState<object>({});
+
+    const [codeSnippets, setCodeSnippets] = useState<object[]>([]);
 
     const logoutUser = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-        navigate("/");
+        navigate("/login");
     };
 
     useEffect(() => {
@@ -84,18 +88,42 @@ const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
                 const response = await axios.get("/api/user/tags/all", {
                     headers: getAuthHeaders()
                 });
+
                 const tagNames = response.data.map(
                     (tag: { id: string; name: string }) => tag.name
                 );
-                // Set tags directly without spreading previous state to avoid duplication
+
                 setTags(["All", ...tagNames]);
-                setTagsWithId(response.data)
+                setTagsWithId(response.data);
             } catch (err) {
-                console.error(err);
-                throw err;
+                if (axios.isAxiosError(err) && err.response?.status === 401) {
+                    logoutUser();
+                } else {
+                    console.error(err);
+                }
             }
         }
 
+        async function fetchAllSnippets() {
+            try {
+                const response = await axios.get("/api/user/snippets/all", {
+                    headers: getAuthHeaders()
+                });
+
+                const snippets = response.data;
+
+                // Set Snippets Data
+                setCodeSnippets(snippets);
+            } catch (err) {
+                if (axios.isAxiosError(err) && err.response?.status === 401) {
+                    logoutUser();
+                } else {
+                    console.error(err);
+                }
+            }
+        }
+
+        fetchAllSnippets();
         fetchAllTags();
     }, []);
 
@@ -114,7 +142,9 @@ const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
                 tagsWithId,
                 setTagsWithId,
                 editedTag,
-                setEditedTag
+                setEditedTag,
+                codeSnippets,
+                setCodeSnippets
             }}
         >
             {children}

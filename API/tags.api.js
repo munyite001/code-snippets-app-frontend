@@ -21,7 +21,7 @@ export const createTag = async (axiosInstance, tagName) => {
 
 export const getAllTags = async (axiosInstance) => {
     try {
-        const response = await axiosInstance.get("/api/user/tags/all", {
+        const response = await axiosInstance.get("/user/tags/all", {
             headers: getAuthHeaders()
         });
         return response.data;

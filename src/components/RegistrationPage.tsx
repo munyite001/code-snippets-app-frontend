@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { Alert } from "@mui/material";
+//@ts-ignore
 import { registerUser } from "../../API/users.api.js";
 
 export default function Register() {
