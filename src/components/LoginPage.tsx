@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
-
+import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 // @ts-ignore
 import { loginUser } from "../../API/users.api.js";
 import Alert from "@mui/material/Alert";
 import { useGlobalContext } from "../context/GlobalProvider.js";
+// import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth, googleProvider, signInWithPopup } from "../firebase/firebase.ts";
 
 export default function Login() {
     const { setIsLogged, setToken, setUser } = useGlobalContext();
@@ -79,6 +81,59 @@ export default function Login() {
             }, 3000);
         } catch (error) {
             setAlert({ type: "error", message: String(error) });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Function to handle Google Sign-In
+    const handleGoogleSignIn = async () => {
+        try {
+            setLoading(true);
+            const result = await signInWithPopup(auth, googleProvider);
+            const user = result.user;
+
+            // Get user details from Firebase
+            const firebaseToken = await user.getIdToken();
+
+            console.log("Firebase Token:", firebaseToken);
+            console.log("Decoded Token:", jwtDecode(firebaseToken)); // Check if it contains expected claims
+
+            // Send Firebase token to backend
+            const response = await fetch(
+                `${import.meta.env.VITE_BASE_URL}/api/auth/google-login`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ firebaseToken })
+                }
+            );
+
+            console.log("Response: ", response);
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.message || "Failed To Authenticate");
+            }
+
+            //  Store the token
+            setToken(data.apiToken);
+            localStorage.setItem("token", data.apiToken);
+
+            setAlert({
+                type: "success",
+                message: "Login successful! Redirecting..."
+            });
+            setTimeout(() => navigate("/"), 2000);
+        } catch (error) {
+            console.error(error);
+            setAlert({
+                type: "error",
+                message: "Google Sign-In failed. Please try again."
+            });
         } finally {
             setLoading(false);
         }
@@ -213,6 +268,21 @@ export default function Login() {
                         ) : (
                             "Login"
                         )}
+                    </button>
+
+                    <p className="text-gray-700 text-center">or</p>
+                    {/* Google Sign-In Button */}
+                    <button
+                        className="w-full py-2 px-4 bg-gray-50 text-gray-400 font-medium rounded-md shadow-sm flex items-center justify-center"
+                        onClick={handleGoogleSignIn}
+                        disabled={loading}
+                    >
+                        <img
+                            src="/images/google.png"
+                            alt="Google logo"
+                            className="w-4 h-4 m-2"
+                        />
+                        {loading ? "Signing in..." : "Continue with Google"}
                     </button>
 
                     <p className="text-sm text-center text-gray-500">

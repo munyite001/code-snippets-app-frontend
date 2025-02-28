@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable react-refresh/only-export-components */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
@@ -12,6 +13,9 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 // @ts-ignore
 import { getAuthHeaders } from "../../API/tags.api.js";
+
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../firebase/firebase";
 
 // Define the shape of the context state
 interface User {
@@ -131,6 +135,25 @@ const GlobalProvider: React.FC<GlobalProviderProps> = ({ children }) => {
 
         fetchAllSnippets();
         fetchAllTags();
+    }, []);
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                setUser({
+                    name: user.displayName || "Anonymous",
+                    email: user.email || ""
+                });
+                setIsLogged(true);
+                user.getIdToken().then(setToken);
+            } else {
+                setUser({ name: "", email: "" });
+                setIsLogged(false);
+                setToken(null);
+            }
+        });
+
+        return () => unsubscribe();
     }, []);
 
     return (
